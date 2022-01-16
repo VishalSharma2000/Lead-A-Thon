@@ -42,11 +42,14 @@ const getNextChessMoveByCode = async (req, res) => {
     }
 
     const userMoves = req.url.split('/');
+    // To remove the extra space and the code value from the array
     userMoves.shift();
     userMoves.shift();
 
+    // Numbers are not considered as moves, so removing the numbers
     const validSeqMoves = details.moveSteps.filter(move => isNaN(move));
 
+    // match the given moves with the actual moves
     const isValidMoves = userMoves.every((move, index) => {
       move = String(move);
       return move === validSeqMoves[index];
