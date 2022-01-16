@@ -1,2 +1,1 @@
-install: npm install
-start: node src/app.js
+web: node src/app.js
