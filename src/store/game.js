@@ -17,9 +17,7 @@ const scrapeDataFromURL = async (url) => {
     const moveName = $(chessMove.lastChild.firstChild.firstChild).text();
     let moveSteps = $(chessMove.lastChild.firstChild.lastChild).text();
 
-    if (moveCode !== 'A00') {
-      moveSteps = moveSteps.split(' ');
-    }
+    moveSteps = moveSteps.split(' ');
 
     const chessMoveObj = {
       moveCode,
@@ -29,8 +27,6 @@ const scrapeDataFromURL = async (url) => {
 
     allSteps.push(chessMoveObj);
   })
-
-  // console.log(allSteps);
 
   return allSteps;
 };
@@ -49,6 +45,18 @@ const getAllChessGames = async () => {
   return allChessStartingGames;
 }
 
+const getChessMoveDetailsByCode = async (code) => {
+  if(chessGameCache.has(code)) {
+    return chessGameCache.get(code);
+  }
+  const allChessStartingGames = await getAllChessGames();
+  
+  let details = allChessStartingGames.find((chessMove) => chessMove.moveCode === code);
+  chessGameCache.set(code, details);
+
+  return details;
+}
+
 const getValidSeqMoves = (completeMoves) => {
   let moves = completeMoves.filter(move => isNaN(move));
 };
@@ -56,5 +64,6 @@ const getValidSeqMoves = (completeMoves) => {
 module.exports = {
   scrapeDataFromURL,
   getValidSeqMoves,
-  getAllChessGames
+  getAllChessGames,
+  getChessMoveDetailsByCode
 }

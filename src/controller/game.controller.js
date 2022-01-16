@@ -1,57 +1,68 @@
 const gameStore = require('../store/game');
 const response = require('../utils/response');
 
-const {
-  CHESS_MOVE_URL
-} = process.env;
-
 const getAllGameStartingMoves = async (req, res) => {
-  const allChessStartingGames = await gameStore.getAllChessGames();
+  try {
+    const allChessStartingGames = await gameStore.getAllChessGames();
 
-  return response.success(res, allChessStartingGames);
+    return response.success(res, allChessStartingGames);
+  } catch (err) {
+    response.serverError(res, "Something went wrong");
+  }
 };
 
 const getChessMoveDetails = async (req, res) => {
   const { code } = req.params;
-  const allChessStartingGames = await gameStore.getAllChessGames();
+  try {
+    let details = await gameStore.getChessMoveDetailsByCode(code);
+    if (!details) {
+      response.clientError(res, "Invalid Chess Code");
+    }
 
-  let details = allChessStartingGames.find((chessMove) => chessMove.moveCode === code);
-  details.moveSteps = details.moveSteps.join(' ');
+    details.moveSteps = details.moveSteps.join(' ');
 
-  response.success(res, details);
+    response.success(res, details);
+  } catch (err) {
+    console.log(err);
+    response.serverError(res, "Something went wrong");
+  }
 };
 
 const getNextChessMoveByCode = async (req, res) => {
   const { code } = req.params;
-  const allChessStartingGames = await gameStore.getAllChessGames();
 
-  let details = allChessStartingGames.find((chessMove) => chessMove.moveCode === code);
-  if(!details) {
-    response.clientError(res, "Invalid Chess Code");
+  if (code === 'A00') {
+    return response.success(res, { 'nextMove': "Unexpected, because it's uncommon opening"});
   }
 
-  const userMoves = req.url.split('/');
-  userMoves.shift();
-  userMoves.shift();
-  
-  const validSeqMoves = details.moveSteps.filter(move => isNaN(move));
+  try {
+    let details = await gameStore.getChessMoveDetailsByCode(code);
+    if (!details) {
+      response.clientError(res, "Invalid Chess Code");
+    }
 
-  // console.log(userMoves);
-  // console.log(validSeqMoves);
+    const userMoves = req.url.split('/');
+    userMoves.shift();
+    userMoves.shift();
 
-  const isValidMoves = userMoves.every((move, index) => {
-    move = String(move);
-    return move === validSeqMoves[index];
-  });
+    const validSeqMoves = details.moveSteps.filter(move => isNaN(move));
 
-  if(!isValidMoves) {
-    return response.clientError(res, "Invalid Moves as per the Code");
-  }
+    const isValidMoves = userMoves.every((move, index) => {
+      move = String(move);
+      return move === validSeqMoves[index];
+    });
 
-  if(userMoves.length === validSeqMoves.length) {
-    response.success(res, "Game Over, No further moves");
-  } else {
-    response.success(res, validSeqMoves[userMoves.length]);
+    if (!isValidMoves) {
+      return response.clientError(res, "Invalid Moves as per the Code");
+    }
+
+    if (userMoves.length === validSeqMoves.length) {
+      response.success(res, { 'nextMove': "Game Over, No further moves" });
+    } else {
+      response.success(res, { 'nextMove': validSeqMoves[userMoves.length] });
+    }
+  } catch (err) {
+    response.serverError(res, "Something went wrong");
   }
 }
 
