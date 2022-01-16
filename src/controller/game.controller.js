@@ -16,7 +16,7 @@ const getChessMoveDetails = async (req, res) => {
   try {
     let details = await gameStore.getChessMoveDetailsByCode(code);
     if (!details) {
-      response.clientError(res, "Invalid Chess Code");
+      response.clientError(res, "Invalid Chess Move Code");
     }
 
     details.moveSteps = details.moveSteps.join(' ');
@@ -38,7 +38,7 @@ const getNextChessMoveByCode = async (req, res) => {
   try {
     let details = await gameStore.getChessMoveDetailsByCode(code);
     if (!details) {
-      response.clientError(res, "Invalid Chess Code");
+      response.clientError(res, "Invalid Chess Move Code");
     }
 
     const userMoves = req.url.split('/');
